@@ -9,8 +9,18 @@ import (
 type Device interface {
 	// Start 启动设备守护进程
 	Start()
+}
+
+type Sensor interface {
+	Device
 	// Collect 传感器设备采集环境数据
 	Collect() error
+}
+
+type Executor interface {
+	Device
+	// Execute 执行器设备执行操作
+	Execute() error
 }
 
 var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
