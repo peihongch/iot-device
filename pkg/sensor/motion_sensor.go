@@ -27,7 +27,7 @@ func NewMotionSensor(source string, opts *CoapOpts, name string) *MotionSensor {
 
 	return &MotionSensor{
 		topic:  name,
-		remote: fmt.Sprintf("%s:%s", opts.Host, opts.IP),
+		remote: fmt.Sprintf("%s:%s", opts.Host, opts.Port),
 		path:   opts.Path,
 		source: r,
 	}
@@ -45,7 +45,7 @@ type MotionSensor struct {
 
 type CoapOpts struct {
 	Host string
-	IP   string
+	Port string
 	Path string
 }
 

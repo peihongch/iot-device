@@ -1,5 +1,5 @@
 all: data main.go
-	@go build main.go -o iot-device
+	@go build -o bin/iot-device
 
 .PHONY: data
 data: data/iot_telemetry_data.csv data/preprocessing.py

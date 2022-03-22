@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func NewAirConditioner(name string, topic string) *AirConditioner {
-	opts := mqtt.NewClientOptions().AddBroker("tcp://broker.emqx.io:1883").SetClientID("emqx_test_client")
+func NewAirConditioner(name string, topic string, remote string) *AirConditioner {
+	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
 	// 设置消息回调处理函数
@@ -37,6 +37,8 @@ func (ac AirConditioner) Start() {
 	if token := ac.remote.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
+	defer ac.remote.Disconnect(250)
+
 	if err := ac.Execute(); err != nil {
 		log.Fatalln(err)
 	}
@@ -53,6 +55,12 @@ func (ac AirConditioner) Execute() error {
 		ch <- 1
 		err = token.Error()
 	}
+	defer func() {
+		// 取消订阅
+		if token := ac.remote.Unsubscribe(ac.topic); token.Wait() && token.Error() != nil {
+			log.Println(token.Error())
+		}
+	}()
 
 	<-ch
 	return err
