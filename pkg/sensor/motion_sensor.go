@@ -1,9 +1,14 @@
-package pkg
+package sensor
 
 import (
+	"bytes"
+	"context"
 	"encoding/csv"
 	"encoding/json"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"fmt"
+	"github.com/plgd-dev/go-coap/v2/message"
+	"github.com/plgd-dev/go-coap/v2/udp"
+	"github.com/plgd-dev/go-coap/v2/udp/client"
 	"io"
 	"log"
 	"os"
@@ -13,16 +18,7 @@ import (
 // NewMotionSensor 实例化动作传感器
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewMotionSensor(source string, remote string, name string) *MotionSensor {
-	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
-
-	opts.SetKeepAlive(60 * time.Second)
-	// 设置消息回调处理函数
-	opts.SetDefaultPublishHandler(f)
-	opts.SetPingTimeout(1 * time.Second)
-
-	c := mqtt.NewClient(opts)
-
+func NewMotionSensor(source string, opts *CoapOpts, name string) *MotionSensor {
 	fs, err := os.Open(source)
 	if err != nil {
 		log.Fatalf("can not open the file, err is %+v", err)
@@ -31,16 +27,26 @@ func NewMotionSensor(source string, remote string, name string) *MotionSensor {
 
 	return &MotionSensor{
 		topic:  name,
-		remote: c,
+		remote: fmt.Sprintf("%s:%s", opts.Host, opts.IP),
+		path:   opts.Path,
 		source: r,
 	}
 }
 
 // MotionSensor 动作传感器
 type MotionSensor struct {
+	ctx    context.Context
 	topic  string
-	remote mqtt.Client
+	path   string
+	remote string
+	co     *client.ClientConn
 	source *csv.Reader
+}
+
+type CoapOpts struct {
+	Host string
+	IP   string
+	Path string
 }
 
 type MotionData struct {
@@ -63,16 +69,32 @@ func (t MotionSensor) Collect() error {
 		log.Println("error when marshaling", err)
 		return err
 	} else {
-		t.remote.Publish(t.topic, 0, false, data)
+		if msg, err := t.co.Post(t.ctx, t.path, message.TextPlain, bytes.NewReader(data)); err != nil {
+			log.Println("error when sending coap post message", err)
+		} else {
+			log.Println("coap resp", msg)
+		}
 		return nil
 	}
 }
 
-func (t MotionSensor) Start() {
-	if token := t.remote.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+func (t *MotionSensor) Start() {
+	co, err := udp.Dial(t.remote)
+	if err != nil {
+		log.Fatalf("Error dialing: %v", err)
+	} else {
+		t.co = co
 	}
-	defer t.remote.Disconnect(250)
+	defer func(co *client.ClientConn) {
+		err := co.Close()
+		if err != nil {
+			log.Fatalf("Error close CoAP connection: %v", err)
+		}
+	}(t.co)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	t.ctx = ctx
+	defer cancel()
 
 	for range time.Tick(5 * time.Second) {
 		err := t.Collect()

@@ -1,9 +1,10 @@
-package pkg
+package sensor
 
 import (
 	"encoding/csv"
 	"encoding/json"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/peihongch/iot-device/pkg"
 	"io"
 	"log"
 	"os"
@@ -18,7 +19,7 @@ func NewCoSensor(source string, remote string, name string) *CoSensor {
 
 	opts.SetKeepAlive(60 * time.Second)
 	// 设置消息回调处理函数
-	opts.SetDefaultPublishHandler(f)
+	opts.SetDefaultPublishHandler(pkg.Handler)
 	opts.SetPingTimeout(1 * time.Second)
 
 	c := mqtt.NewClient(opts)

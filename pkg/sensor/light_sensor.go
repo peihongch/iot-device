@@ -1,24 +1,25 @@
-package pkg
+package sensor
 
 import (
 	"encoding/csv"
 	"encoding/json"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/peihongch/iot-device/pkg"
 	"io"
 	"log"
 	"os"
 	"time"
 )
 
-// NewLpgSensor 实例化lpg传感器
+// NewLightSensor 实例化亮度传感器
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewLpgSensor(source string, remote string, name string) *LpgSensor {
+func NewLightSensor(source string, remote string, name string) *LightSensor {
 	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
 	// 设置消息回调处理函数
-	opts.SetDefaultPublishHandler(f)
+	opts.SetDefaultPublishHandler(pkg.Handler)
 	opts.SetPingTimeout(1 * time.Second)
 
 	c := mqtt.NewClient(opts)
@@ -29,36 +30,36 @@ func NewLpgSensor(source string, remote string, name string) *LpgSensor {
 	}
 	r := csv.NewReader(fs)
 
-	return &LpgSensor{
+	return &LightSensor{
 		topic:  name,
 		remote: c,
 		source: r,
 	}
 }
 
-// LpgSensor lpg传感器
-type LpgSensor struct {
+// LightSensor 亮度传感器
+type LightSensor struct {
 	topic  string
 	remote mqtt.Client
 	source *csv.Reader
 }
 
-type LpgData struct {
+type LightData struct {
 	Timestamp string `json:"ts"`
 	Device    string `json:"device"`
-	LPG       string `json:"lpg"`
+	Light     string `json:"light"`
 }
 
-func (t LpgSensor) Collect() error {
+func (t LightSensor) Collect() error {
 	row, err := t.source.Read()
 	if err != nil {
 		return err
 	}
 
-	if data, err := json.Marshal(&LpgData{
+	if data, err := json.Marshal(&LightData{
 		Timestamp: row[0],
 		Device:    row[1],
-		LPG:       row[2],
+		Light:     row[2],
 	}); err != nil {
 		log.Println("error when marshaling", err)
 		return err
@@ -68,7 +69,7 @@ func (t LpgSensor) Collect() error {
 	}
 }
 
-func (t LpgSensor) Start() {
+func (t LightSensor) Start() {
 	if token := t.remote.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}

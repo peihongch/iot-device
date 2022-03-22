@@ -1,24 +1,25 @@
-package pkg
+package sensor
 
 import (
 	"encoding/csv"
 	"encoding/json"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/peihongch/iot-device/pkg"
 	"io"
 	"log"
 	"os"
 	"time"
 )
 
-// NewHumiditySensor 实例化湿度传感器
+// NewLpgSensor 实例化lpg传感器
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewHumiditySensor(source string, remote string, name string) *HumiditySensor {
+func NewLpgSensor(source string, remote string, name string) *LpgSensor {
 	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
 	// 设置消息回调处理函数
-	opts.SetDefaultPublishHandler(f)
+	opts.SetDefaultPublishHandler(pkg.Handler)
 	opts.SetPingTimeout(1 * time.Second)
 
 	c := mqtt.NewClient(opts)
@@ -29,36 +30,36 @@ func NewHumiditySensor(source string, remote string, name string) *HumiditySenso
 	}
 	r := csv.NewReader(fs)
 
-	return &HumiditySensor{
+	return &LpgSensor{
 		topic:  name,
 		remote: c,
 		source: r,
 	}
 }
 
-// HumiditySensor 湿度传感器
-type HumiditySensor struct {
+// LpgSensor lpg传感器
+type LpgSensor struct {
 	topic  string
 	remote mqtt.Client
 	source *csv.Reader
 }
 
-type HumidityData struct {
+type LpgData struct {
 	Timestamp string `json:"ts"`
 	Device    string `json:"device"`
-	Humidity  string `json:"humidity"`
+	LPG       string `json:"lpg"`
 }
 
-func (t HumiditySensor) Collect() error {
+func (t LpgSensor) Collect() error {
 	row, err := t.source.Read()
 	if err != nil {
 		return err
 	}
 
-	if data, err := json.Marshal(&HumidityData{
+	if data, err := json.Marshal(&LpgData{
 		Timestamp: row[0],
 		Device:    row[1],
-		Humidity:  row[2],
+		LPG:       row[2],
 	}); err != nil {
 		log.Println("error when marshaling", err)
 		return err
@@ -68,7 +69,7 @@ func (t HumiditySensor) Collect() error {
 	}
 }
 
-func (t HumiditySensor) Start() {
+func (t LpgSensor) Start() {
 	if token := t.remote.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}

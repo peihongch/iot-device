@@ -23,7 +23,14 @@ type Executor interface {
 	Execute() error
 }
 
-var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+var Handler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	fmt.Printf("MSG: %s\n", msg.Payload())
 }
+
+type Protocol string
+
+const (
+	COAP Protocol = "coap"
+	MQTT Protocol = "coap"
+)
