@@ -9,13 +9,13 @@ var airConditionerCommand = &cobra.Command{
 	Use:   "air-conditioner",
 	Short: "[mqtt] Start up air conditioner device",
 	Run: func(cmd *cobra.Command, args []string) {
-		airConditioner := executor.NewAirConditioner(name, topic, remote)
+		airConditioner := executor.NewAirConditioner(name, topic, port)
 		airConditioner.Start()
 	},
 }
 
 func init() {
-	airConditionerCommand.PersistentFlags().StringVar(&remote, "remote", "", "mqtt server url, e.g. tcp://broker.emqx.io:1883")
+	airConditionerCommand.PersistentFlags().StringVar(&port, "port", "1883", "mqtt broker port url, default 1883")
 	airConditionerCommand.PersistentFlags().StringVar(&topic, "topic", "", "mqtt topic to subscribe")
 
 	rootCmd.AddCommand(airConditionerCommand)

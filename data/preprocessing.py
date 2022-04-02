@@ -10,4 +10,4 @@ if not os.path.exists('devices'):
     os.mkdir('devices')
 for i in range(len(col_names)):
     col = col_names[i]
-    df[["ts", "device", col]].to_csv('devices/iot_telemetry_%s.csv' % col, index=False)
+    df[["ts", "device", col]].to_csv('devices/iot_telemetry_%s.csv' % col, index=False, header=False)

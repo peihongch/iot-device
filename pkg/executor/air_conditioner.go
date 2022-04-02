@@ -2,66 +2,55 @@ package executor
 
 import (
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/mochi-co/mqtt/server"
+	"github.com/mochi-co/mqtt/server/events"
+	"github.com/mochi-co/mqtt/server/listeners"
 	"log"
-	"time"
 )
 
-func NewAirConditioner(name string, topic string, remote string) *AirConditioner {
-	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
+func NewAirConditioner(name, topic, port string) *AirConditioner {
+	mqtt.New()
+	// Create the new MQTT Server.
+	server := mqtt.New()
 
-	opts.SetKeepAlive(60 * time.Second)
-	// 设置消息回调处理函数
-	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
-		fmt.Printf("TOPIC: %s\n", msg.Topic())
-		fmt.Printf("MSG: %s\n", msg.Payload())
-	})
-	opts.SetPingTimeout(1 * time.Second)
+	// Create a TCP listener on a standard port.
+	tcp := listeners.NewTCP(name, port)
 
-	c := mqtt.NewClient(opts)
+	// Add the listener to the server with default options (nil).
+	err := server.AddListener(tcp, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return &AirConditioner{
 		topic:  topic,
-		name:   name,
-		remote: c,
+		port:   port,
+		server: server,
 	}
 }
 
 type AirConditioner struct {
 	topic  string
-	name   string
-	remote mqtt.Client
+	port   string
+	server *mqtt.Server
 }
 
 func (ac AirConditioner) Start() {
-	if token := ac.remote.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	// Start the broker. Serve() is blocking - see examples folder
+	// for usage ideas.
+	ac.server.Events.OnMessage = func(client events.Client, packet events.Packet) (pk events.Packet, err error) {
+		err = ac.Execute(string(packet.Payload))
+		return
 	}
-	defer ac.remote.Disconnect(250)
 
-	if err := ac.Execute(); err != nil {
-		log.Fatalln(err)
+	log.Printf("mqtt broker started: %v:%v\n", "0.0.0.0", ac.port)
+	err := ac.server.Serve()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func (ac AirConditioner) Execute() error {
-	var err error
-	ch := make(chan int, 1)
-
-	// 订阅主题
-	if token := ac.remote.Subscribe(ac.topic, 0, func(client mqtt.Client, message mqtt.Message) {
-		fmt.Printf("receive command: %s\n", string(message.Payload()))
-	}); token.Wait() && token.Error() != nil {
-		ch <- 1
-		err = token.Error()
-	}
-	defer func() {
-		// 取消订阅
-		if token := ac.remote.Unsubscribe(ac.topic); token.Wait() && token.Error() != nil {
-			log.Println(token.Error())
-		}
-	}()
-
-	<-ch
-	return err
+func (ac AirConditioner) Execute(cmd string) error {
+	fmt.Println(cmd)
+	return nil
 }

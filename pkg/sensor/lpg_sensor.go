@@ -14,13 +14,14 @@ import (
 // NewLpgSensor 实例化lpg传感器
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewLpgSensor(source string, remote string, name string) *LpgSensor {
+func NewLpgSensor(source string, remote string, name string, token string) *LpgSensor {
 	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
 	// 设置消息回调处理函数
 	opts.SetDefaultPublishHandler(pkg.Handler)
 	opts.SetPingTimeout(1 * time.Second)
+	opts.SetUsername(token)
 
 	c := mqtt.NewClient(opts)
 

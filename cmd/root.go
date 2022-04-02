@@ -10,6 +10,8 @@ var (
 	data   = ""
 	name   = ""
 	remote = ""
+	port   = ""
+	token  = ""
 	topic  = ""
 )
 

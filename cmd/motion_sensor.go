@@ -7,7 +7,6 @@ import (
 
 var (
 	host = ""
-	port = ""
 	path = ""
 )
 

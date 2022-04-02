@@ -20,7 +20,7 @@ type Sensor interface {
 type Executor interface {
 	Device
 	// Execute 执行器设备执行操作
-	Execute() error
+	Execute(cmd string) error
 }
 
 var Handler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {

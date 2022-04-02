@@ -6,6 +6,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/plgd-dev/go-coap/v2 v2.5.0
 	github.com/spf13/cobra v1.4.0
+	github.com/mochi-co/mqtt v1.1.1
 )
 
 require (

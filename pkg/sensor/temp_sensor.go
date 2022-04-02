@@ -14,13 +14,14 @@ import (
 // NewTempSensor 实例化温度计设备
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewTempSensor(source string, remote string, name string) *TempSensor {
+func NewTempSensor(source string, remote string, name string, token string) *TempSensor {
 	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
 	// 设置消息回调处理函数
 	opts.SetDefaultPublishHandler(pkg.Handler)
 	opts.SetPingTimeout(1 * time.Second)
+	opts.SetUsername(token)
 
 	c := mqtt.NewClient(opts)
 
