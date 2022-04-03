@@ -10,4 +10,13 @@ if not os.path.exists('devices'):
     os.mkdir('devices')
 for i in range(len(col_names)):
     col = col_names[i]
-    df[["ts", "device", col]].to_csv('devices/iot_telemetry_%s.csv' % col, index=False, header=False)
+
+    # 根据device字段将数据拆分成多个设备的数据
+    groups = df.groupby("device")
+    for group in groups:
+        if not os.path.exists('devices/%s' % group[0]):
+            os.mkdir('devices/%s' % group[0])
+        result = group[1][["ts", "device", col]]
+        result.to_csv('devices/%s/iot_telemetry_%s.csv' % (group[0], col), index=False,
+                      header=False)
+        print("wrote %d records to devices/%s/iot_telemetry_%s.csv" % (result.size, group[0], col))

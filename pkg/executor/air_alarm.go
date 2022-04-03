@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func NewAirConditioner(name, topic, port string) *AirConditioner {
+func NewAirAlarm(name, topic, port string) *AirAlarm {
 	mqtt.New()
 	// Create the new MQTT Server.
 	server := mqtt.New()
@@ -24,25 +24,27 @@ func NewAirConditioner(name, topic, port string) *AirConditioner {
 		log.Fatal(err)
 	}
 
-	return &AirConditioner{
+	return &AirAlarm{
 		topic:  topic,
 		port:   port,
 		server: server,
 	}
 }
 
-type AirConditioner struct {
+type AirAlarm struct {
 	topic  string
 	port   string
 	server *mqtt.Server
 }
 
-type AirConditionerCommand struct {
-	Mode   string `json:"mode"`
-	Target int    `json:"target"`
+type AirAlarmCommand struct {
+	Timestamp int     `json:"ts"`
+	Device    string  `json:"device"`
+	Co        float64 `json:"co"`
+	Threshold float64 `json:"threshold"`
 }
 
-func (ac AirConditioner) Start() {
+func (ac AirAlarm) Start() {
 	// Start the broker. Serve() is blocking - see examples folder
 	// for usage ideas.
 	ac.server.Events.OnMessage = func(client events.Client, packet events.Packet) (pk events.Packet, err error) {
@@ -57,20 +59,15 @@ func (ac AirConditioner) Start() {
 	}
 }
 
-func (ac AirConditioner) Execute(cmd string) error {
-	parsed := &AirConditionerCommand{}
+func (ac AirAlarm) Execute(cmd string) error {
+	parsed := &AirAlarmCommand{}
 	err := json.Unmarshal([]byte(cmd), parsed)
 	if err != nil {
 		return err
 	}
 
-	switch parsed.Mode {
-	case "hot":
-		fmt.Printf("空调【模式：%s】【温度：%v℃】\n", pkg.SprintRed("制热"), pkg.SprintCyan(fmt.Sprintf("%v", parsed.Target)))
-	case "cold":
-		fmt.Printf("空调【模式：%s】【温度：%v℃】\n", pkg.SprintBlue("制冷"), pkg.SprintCyan(fmt.Sprintf("%v", parsed.Target)))
-	case "dry":
-		fmt.Printf("空调【模式：%s】\n", pkg.SprintGreen("除湿"))
+	if parsed.Co >= parsed.Threshold {
+		fmt.Println(pkg.SprintRed(fmt.Sprintf("!!!WARNING!!! 一氧化碳浓度到达 %v，危险阈值为 %v!", parsed.Co, parsed.Threshold)))
 	}
 
 	return nil

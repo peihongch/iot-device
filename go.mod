@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.3.5
+	github.com/mochi-co/mqtt v1.1.1
 	github.com/plgd-dev/go-coap/v2 v2.5.0
 	github.com/spf13/cobra v1.4.0
-	github.com/mochi-co/mqtt v1.1.1
 )
 
 require (
@@ -18,6 +18,7 @@ require (
 	github.com/pion/transport v0.13.0 // indirect
 	github.com/pion/udp v0.1.1 // indirect
 	github.com/plgd-dev/kit/v2 v2.0.0-20211006190727-057b33161b90 // indirect
+	github.com/rs/xid v1.3.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064 // indirect
