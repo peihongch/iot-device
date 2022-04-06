@@ -12,6 +12,7 @@ Usage:
   iot-device [command]
 
 Available Commands:
+  air-alarm       [mqtt] Start up air alarm device
   air-conditioner [mqtt] Start up air conditioner device
   co              [mqtt] Start up co sensor device
   completion      Generate the autocompletion script for the specified shell

@@ -1,4 +1,6 @@
-all: data main.go
+all: data iot-device
+
+iot-device: main.go
 	@go build -o bin/iot-device
 
 .PHONY: data
@@ -8,3 +10,12 @@ data: data/iot_telemetry_data.csv data/preprocessing.py
 .PHONY: clean
 clean:
 	@rm -rf iot-device data/devices
+
+.PHONY: dist
+dist: data iot-device
+	@mkdir -p dist
+	@cp -r data/devices dist
+	@cp scripts/*.sh dist
+	@cp bin/iot-device dist
+	@tree dist
+	@echo "Done!"
