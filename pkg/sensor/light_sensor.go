@@ -30,6 +30,12 @@ func NewLightSensor(source string, remote string, name string, token string) *Li
 		log.Fatalf("can not open the file, err is %+v", err)
 	}
 	r := csv.NewReader(fs)
+	// 丢弃首行
+	_, err = r.Read()
+	if err != nil {
+		log.Fatalf("error discard csv header, err is %+v", err)
+		return nil
+	}
 
 	return &LightSensor{
 		topic:  name,
@@ -66,6 +72,7 @@ func (t LightSensor) Collect() error {
 		return err
 	} else {
 		t.remote.Publish(t.topic, 0, false, data)
+		log.Println(string(data))
 		return nil
 	}
 }

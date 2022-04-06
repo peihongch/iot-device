@@ -76,6 +76,7 @@ func (t GasSensor) Collect() error {
 		return err
 	} else {
 		t.remote.Publish(t.topic, 0, false, data)
+		log.Println(string(data))
 		return nil
 	}
 }

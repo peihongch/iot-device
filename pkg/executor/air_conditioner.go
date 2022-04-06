@@ -16,7 +16,7 @@ func NewAirConditioner(name, topic, port string) *AirConditioner {
 	server := mqtt.New()
 
 	// Create a TCP listener on a standard port.
-	tcp := listeners.NewTCP(name, port)
+	tcp := listeners.NewTCP(name, fmt.Sprintf("localhost:%s", port))
 
 	// Add the listener to the server with default options (nil).
 	err := server.AddListener(tcp, nil)

@@ -24,6 +24,12 @@ func NewMotionSensor(source string, opts *CoapOpts, name string) *MotionSensor {
 		log.Fatalf("can not open the file, err is %+v", err)
 	}
 	r := csv.NewReader(fs)
+	// 丢弃首行
+	_, err = r.Read()
+	if err != nil {
+		log.Fatalf("error discard csv header, err is %+v", err)
+		return nil
+	}
 
 	return &MotionSensor{
 		topic:  name,
@@ -72,6 +78,7 @@ func (t MotionSensor) Collect() error {
 		if msg, err := t.co.Post(t.ctx, t.path, message.TextPlain, bytes.NewReader(data)); err != nil {
 			log.Println("error when sending coap post message", err)
 		} else {
+			log.Println(string(data))
 			log.Println("coap resp", msg)
 		}
 		return nil

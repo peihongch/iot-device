@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 device=$1
 device_id=$2
@@ -6,9 +6,8 @@ remote=$3
 token=$4
 topic=$5
 
-./bin/iot-device "$device" \
-  --data ./data/devices/"$device_id"/iot_telemetry_"$device".csv \
+./iot-device "$device" \
+  --data ./devices/"$device_id"/iot_telemetry_"$device".csv \
   --name "$topic" \
   --remote "$remote" \
-  --token "$token" \
-  >>log/"$device"-"$device_id".log &
+  --token "$token" &
