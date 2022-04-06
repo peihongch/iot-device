@@ -3,7 +3,7 @@
 mkdir -p log
 
 device_id=$1
-for device in temp-humitidy gas light; do
+for device in th gas light; do
   ./start-mqtt-client.sh "$device" "$device_id" "tcp://172.19.241.103:11883" "DHT22" "v1/devices/me/telemetry"
 done
 echo "MQTT sensor devices started!"

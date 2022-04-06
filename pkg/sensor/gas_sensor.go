@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-// NewSmokeSensor 实例化烟雾传感器
+// NewGasSensor 实例化气体传感器
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewSmokeSensor(source string, remote string, name string, token string) *SmokeSensor {
+func NewGasSensor(source string, remote string, name string, token string) *GasSensor {
 	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
@@ -30,37 +30,47 @@ func NewSmokeSensor(source string, remote string, name string, token string) *Sm
 		log.Fatalf("can not open the file, err is %+v", err)
 	}
 	r := csv.NewReader(fs)
+	// 丢弃首行
+	_, err = r.Read()
+	if err != nil {
+		log.Fatalf("error discard csv header, err is %+v", err)
+		return nil
+	}
 
-	return &SmokeSensor{
+	return &GasSensor{
 		topic:  name,
 		remote: c,
 		source: r,
 	}
 }
 
-// SmokeSensor 烟雾传感器
-type SmokeSensor struct {
+// GasSensor 气体传感器
+type GasSensor struct {
 	topic  string
 	remote mqtt.Client
 	source *csv.Reader
 }
 
-type SmokeData struct {
+type GasData struct {
 	Timestamp string `json:"ts"`
 	Device    string `json:"device"`
+	CO        string `json:"co"`
 	Smoke     string `json:"smoke"`
+	Lpg       string `json:"lpg"`
 }
 
-func (t SmokeSensor) Collect() error {
+func (t GasSensor) Collect() error {
 	row, err := t.source.Read()
 	if err != nil {
 		return err
 	}
 
-	if data, err := json.Marshal(&SmokeData{
+	if data, err := json.Marshal(&GasData{
 		Timestamp: row[0],
 		Device:    row[1],
-		Smoke:     row[2],
+		CO:        row[2],
+		Smoke:     row[3],
+		Lpg:       row[4],
 	}); err != nil {
 		log.Println("error when marshaling", err)
 		return err
@@ -70,7 +80,7 @@ func (t SmokeSensor) Collect() error {
 	}
 }
 
-func (t SmokeSensor) Start() {
+func (t GasSensor) Start() {
 	if token := t.remote.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}

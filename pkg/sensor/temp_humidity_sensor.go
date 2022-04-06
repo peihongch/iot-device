@@ -11,10 +11,10 @@ import (
 	"time"
 )
 
-// NewTempSensor 实例化温度计设备
+// NewTempHumiditySensor 实例化温湿度传感器
 //  source 数据源
 //  remote 数据发送的远端目的平台
-func NewTempSensor(source string, remote string, name string, token string) *TempSensor {
+func NewTempHumiditySensor(source string, remote string, name string, token string) *TempHumiditySensor {
 	opts := mqtt.NewClientOptions().AddBroker(remote).SetClientID(name)
 
 	opts.SetKeepAlive(60 * time.Second)
@@ -31,46 +31,49 @@ func NewTempSensor(source string, remote string, name string, token string) *Tem
 	}
 	r := csv.NewReader(fs)
 
-	return &TempSensor{
+	return &TempHumiditySensor{
 		topic:  name,
 		remote: c,
 		source: r,
 	}
 }
 
-// TempSensor 温度传感器
-type TempSensor struct {
+// TempHumiditySensor 温湿度传感器
+type TempHumiditySensor struct {
 	topic  string
 	remote mqtt.Client
 	source *csv.Reader
 }
 
-type TempData struct {
+type HumidityData struct {
 	Timestamp   string `json:"ts"`
 	Device      string `json:"device"`
 	Temperature string `json:"temp"`
+	Humidity    string `json:"humidity"`
 }
 
-func (t TempSensor) Collect() error {
+func (t TempHumiditySensor) Collect() error {
 	row, err := t.source.Read()
 	if err != nil {
 		return err
 	}
 
-	if data, err := json.Marshal(&TempData{
+	if data, err := json.Marshal(&HumidityData{
 		Timestamp:   row[0],
 		Device:      row[1],
 		Temperature: row[2],
+		Humidity:    row[3],
 	}); err != nil {
 		log.Println("error when marshaling", err)
 		return err
 	} else {
 		t.remote.Publish(t.topic, 0, false, data)
+		log.Println(string(data))
 		return nil
 	}
 }
 
-func (t TempSensor) Start() {
+func (t TempHumiditySensor) Start() {
 	if token := t.remote.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
