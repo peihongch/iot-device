@@ -17,5 +17,6 @@ dist: data iot-device
 	@cp -r data/devices dist
 	@cp scripts/*.sh dist
 	@cp bin/iot-device dist
+	@chmod a+x dist/*.sh
 	@tree dist
 	@echo "Done!"

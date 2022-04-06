@@ -2,7 +2,7 @@
 
 ## 项目介绍
 
-TODO
+云边端一体架构中端设备模拟器。
 
 ## 使用指南
 
@@ -14,15 +14,12 @@ Usage:
 Available Commands:
   air-alarm       [mqtt] Start up air alarm device
   air-conditioner [mqtt] Start up air conditioner device
-  co              [mqtt] Start up co sensor device
   completion      Generate the autocompletion script for the specified shell
+  gas             [mqtt] Start up gas (co, smoke and lpg) sensor device
   help            Help about any command
-  humidity        [mqtt] Start up humidity sensor device
   light           [mqtt] Start up light sensor device
-  lpg             [mqtt] Start up lpg sensor device
   motion          [coap] Start up motion sensor device
-  smoke           [mqtt] Start up smoke sensor device
-  temp            [mqtt] Start up temperature sensor device
+  th              [mqtt] Start up th (temperature and humidity) sensor device
 
 Flags:
       --data string   device data file (e.g. ./data.csv)
@@ -32,5 +29,9 @@ Flags:
 Use "iot-device [command] --help" for more information about a command.
 ```
 iot-device支持的命令如下：
-- TODO
-- TODO
+- air-alarm: 启动气体警报器，采用mqtt协议;
+- air-conditioner: 启动空调, 采用mqtt协议;
+- gas: 启动气体传感器，包含co、smoke和lpg指标，采用mqtt协议;
+- light: 启动光线传感器，采用mqtt协议;
+- motion: 启动移动传感器，采用coap协议;
+- th: 启动温湿度传感器，包含temp和humidity指标，采用mqtt协议。
