@@ -52,7 +52,7 @@ func (ac AirAlarm) Start() {
 		return
 	}
 
-	log.Printf("mqtt broker started: %v:%v\n", "0.0.0.0", ac.port)
+	log.Printf("air-alarm mqtt broker started: %v:%v\n", "0.0.0.0", ac.port)
 	err := ac.server.Serve()
 	if err != nil {
 		log.Fatal(err)
