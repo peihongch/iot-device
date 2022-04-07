@@ -8,7 +8,7 @@ device_id=$1
 ./start-mqtt-client.sh "light" "$device_id" "tcp://172.19.241.103:11883" "light_sensor_$device_id" "v1/devices/me/telemetry"
 echo "MQTT sensor devices started!"
 
-./start-coap-client.sh "motion" "$device_id" "172.19.241.103" "5684" "api/v1/DHT22/telemetry"
+./start-coap-client.sh "motion" "$device_id" "172.19.241.103" "5684" "api/v1/motion_sensor_$device_id/telemetry"
 echo "COAP sensor device started!"
 
 port=1883

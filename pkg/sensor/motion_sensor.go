@@ -99,9 +99,7 @@ func (t *MotionSensor) Start() {
 		}
 	}(t.co)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	t.ctx = ctx
-	defer cancel()
+	t.ctx = context.Background()
 
 	for range time.Tick(5 * time.Second) {
 		err := t.Collect()
