@@ -11,8 +11,11 @@ require (
 
 require (
 	github.com/dsnet/golib/memfile v1.0.0 // indirect
+	github.com/fatih/color v1.13.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/mattn/go-colorable v0.1.9 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pion/dtls/v2 v2.1.3 // indirect
 	github.com/pion/logging v0.2.2 // indirect
 	github.com/pion/transport v0.13.0 // indirect

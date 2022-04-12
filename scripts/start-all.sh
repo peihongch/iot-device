@@ -14,9 +14,9 @@ device_id=$1
 echo "All MQTT sensor devices started!"
 
 ./start-mqtt-executor-client.sh "air-alarm" "client" "tcp://172.19.241.103:11883" \
-            "air_alarm_$device_id" "v1/devices/me/telemetry"
-./start-mqtt-executor-client.sh "air-alarm" "client" "tcp://172.19.241.103:11883" \
-            "air_conditioner_$device_id" "v1/devices/me/telemetry"
+            "air_alarm_$device_id" "v1/devices/me/rpc/request/+"
+./start-mqtt-executor-client.sh "air-conditioner" "client" "tcp://172.19.241.103:11883" \
+            "air_conditioner_$device_id" "v1/devices/me/rpc/request/+"
 
 echo "All MQTT executor devices started!"
 

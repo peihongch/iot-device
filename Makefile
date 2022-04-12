@@ -13,7 +13,7 @@ clean:
 
 .PHONY: dist
 dist: data iot-device
-	@mkdir -p dist
+	@rm -rf dist && mkdir -p dist
 	@cp -r data/devices dist
 	@cp scripts/*.sh dist
 	@cp bin/iot-device dist

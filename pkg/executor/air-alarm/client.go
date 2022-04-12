@@ -5,9 +5,6 @@ import (
 	mqttclient "github.com/eclipse/paho.mqtt.golang"
 	"github.com/peihongch/iot-device/pkg"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -34,26 +31,26 @@ type AirAlarmClient struct {
 }
 
 func (ac AirAlarmClient) Start() {
-	sigs := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-sigs
-		done <- true
-	}()
+	if token := ac.remote.Connect(); token.Wait() && token.Error() != nil {
+		panic(token.Error())
+	} else {
+		log.Println("air alarm client started")
+	}
+	defer ac.remote.Disconnect(250)
 
 	if token := ac.remote.Subscribe(ac.topic, 0, func(client mqttclient.Client, message mqttclient.Message) {
-
+		if err := ac.Execute(string(message.Payload())); err != nil {
+			log.Fatalln("error execute air alarm command", err)
+		}
 	}); token.Error() != nil {
 		log.Fatal("error subscribe edge platform", token.Error())
+	} else {
+		log.Printf("air alarm successfully subscribe %s", ac.topic)
 	}
 
-	<-done
-	log.Println("interrupt signal caught")
-
-	ac.remote.Unsubscribe(ac.topic)
-	ac.remote.Disconnect(0)
-	log.Println("air-alarm mqtt broker closed")
+	for {
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (ac AirAlarmClient) Execute(cmd string) error {
