@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# start-mqtt-client.sh
+
 device=$1
 device_id=$2
 remote=$3

@@ -8,6 +8,9 @@ import (
 	"github.com/mochi-co/mqtt/server/listeners"
 	"github.com/peihongch/iot-device/pkg"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func NewAirAlarm(name, topic, port string) *AirAlarm {
@@ -52,11 +55,25 @@ func (ac AirAlarm) Start() {
 		return
 	}
 
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		done <- true
+	}()
+
 	log.Printf("air-alarm mqtt broker started: %v:%v\n", "0.0.0.0", ac.port)
 	err := ac.server.Serve()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	<-done
+	log.Println("interrupt signal caught")
+
+	ac.server.Close()
+	log.Println("air-alarm mqtt broker closed")
 }
 
 func (ac AirAlarm) Execute(cmd string) error {

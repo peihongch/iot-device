@@ -8,6 +8,9 @@ import (
 	"github.com/mochi-co/mqtt/server/listeners"
 	"github.com/peihongch/iot-device/pkg"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func NewAirConditioner(name, topic, port string) *AirConditioner {
@@ -50,11 +53,25 @@ func (ac AirConditioner) Start() {
 		return
 	}
 
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		done <- true
+	}()
+
 	log.Printf("air-conditioner mqtt broker started: %v:%v\n", "0.0.0.0", ac.port)
 	err := ac.server.Serve()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	<-done
+	log.Println("interrupt signal caught")
+
+	ac.server.Close()
+	log.Println("air-conditioner mqtt broker closed")
 }
 
 func (ac AirConditioner) Execute(cmd string) error {

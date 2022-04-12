@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# start-coap-client.sh
+
 device=$1
 device_id=$2
 host=$3
