@@ -1,4 +1,4 @@
-package executor
+package air_alarm
 
 import (
 	"encoding/json"
@@ -6,14 +6,13 @@ import (
 	mqtt "github.com/mochi-co/mqtt/server"
 	"github.com/mochi-co/mqtt/server/events"
 	"github.com/mochi-co/mqtt/server/listeners"
-	"github.com/peihongch/iot-device/pkg"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-func NewAirAlarm(name, topic, port string) *AirAlarm {
+func NewAirAlarmBroker(name, topic, port string) *AirAlarmBroker {
 	mqtt.New()
 	// Create the new MQTT Server.
 	server := mqtt.New()
@@ -27,27 +26,20 @@ func NewAirAlarm(name, topic, port string) *AirAlarm {
 		log.Fatal(err)
 	}
 
-	return &AirAlarm{
+	return &AirAlarmBroker{
 		topic:  topic,
 		port:   port,
 		server: server,
 	}
 }
 
-type AirAlarm struct {
+type AirAlarmBroker struct {
 	topic  string
 	port   string
 	server *mqtt.Server
 }
 
-type AirAlarmCommand struct {
-	Timestamp int     `json:"ts"`
-	Device    string  `json:"device"`
-	Co        float64 `json:"co"`
-	Threshold float64 `json:"threshold"`
-}
-
-func (ac AirAlarm) Start() {
+func (ac AirAlarmBroker) Start() {
 	// Start the broker. Serve() is blocking - see examples folder
 	// for usage ideas.
 	ac.server.Events.OnMessage = func(client events.Client, packet events.Packet) (pk events.Packet, err error) {
@@ -76,16 +68,12 @@ func (ac AirAlarm) Start() {
 	log.Println("air-alarm mqtt broker closed")
 }
 
-func (ac AirAlarm) Execute(cmd string) error {
+func (ac AirAlarmBroker) Execute(cmd string) error {
 	parsed := &AirAlarmCommand{}
-	err := json.Unmarshal([]byte(cmd), parsed)
-	if err != nil {
+	if err := json.Unmarshal([]byte(cmd), parsed); err != nil {
 		return err
+	} else {
+		ExecCmd(parsed)
+		return nil
 	}
-
-	if parsed.Co >= parsed.Threshold {
-		fmt.Println(pkg.SprintRed(fmt.Sprintf("!!!WARNING!!! 一氧化碳浓度到达 %v，危险阈值为 %v!", parsed.Co, parsed.Threshold)))
-	}
-
-	return nil
 }

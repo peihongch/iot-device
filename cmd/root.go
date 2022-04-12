@@ -13,6 +13,7 @@ var (
 	port   = ""
 	token  = ""
 	topic  = ""
+	mode   = ""
 )
 
 var rootCmd = &cobra.Command{

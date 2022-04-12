@@ -1,22 +1,21 @@
-package executor
+package air_conditioner
 
 import (
 	"encoding/json"
 	"fmt"
-	mqtt "github.com/mochi-co/mqtt/server"
+	mqttserver "github.com/mochi-co/mqtt/server"
 	"github.com/mochi-co/mqtt/server/events"
 	"github.com/mochi-co/mqtt/server/listeners"
-	"github.com/peihongch/iot-device/pkg"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-func NewAirConditioner(name, topic, port string) *AirConditioner {
-	mqtt.New()
+func NewAirConditionerBroker(name, topic, port string) *AirConditionerBroker {
+	mqttserver.New()
 	// Create the new MQTT Server.
-	server := mqtt.New()
+	server := mqttserver.New()
 
 	// Create a TCP listener on a standard port.
 	tcp := listeners.NewTCP(name, fmt.Sprintf("localhost:%s", port))
@@ -27,25 +26,20 @@ func NewAirConditioner(name, topic, port string) *AirConditioner {
 		log.Fatal(err)
 	}
 
-	return &AirConditioner{
+	return &AirConditionerBroker{
 		topic:  topic,
 		port:   port,
 		server: server,
 	}
 }
 
-type AirConditioner struct {
+type AirConditionerBroker struct {
 	topic  string
 	port   string
-	server *mqtt.Server
+	server *mqttserver.Server
 }
 
-type AirConditionerCommand struct {
-	Mode   string `json:"mode"`
-	Target int    `json:"target"`
-}
-
-func (ac AirConditioner) Start() {
+func (ac AirConditionerBroker) Start() {
 	// Start the broker. Serve() is blocking - see examples folder
 	// for usage ideas.
 	ac.server.Events.OnMessage = func(client events.Client, packet events.Packet) (pk events.Packet, err error) {
@@ -61,7 +55,7 @@ func (ac AirConditioner) Start() {
 		done <- true
 	}()
 
-	log.Printf("air-conditioner mqtt broker started: %v:%v\n", "0.0.0.0", ac.port)
+	log.Printf("air-conditioner mqttserver broker started: %v:%v\n", "0.0.0.0", ac.port)
 	err := ac.server.Serve()
 	if err != nil {
 		log.Fatal(err)
@@ -71,24 +65,15 @@ func (ac AirConditioner) Start() {
 	log.Println("interrupt signal caught")
 
 	ac.server.Close()
-	log.Println("air-conditioner mqtt broker closed")
+	log.Println("air-conditioner mqttserver broker closed")
 }
 
-func (ac AirConditioner) Execute(cmd string) error {
+func (ac AirConditionerBroker) Execute(cmd string) error {
 	parsed := &AirConditionerCommand{}
-	err := json.Unmarshal([]byte(cmd), parsed)
-	if err != nil {
+	if err := json.Unmarshal([]byte(cmd), parsed); err != nil {
 		return err
+	} else {
+		ExecCmd(parsed)
+		return nil
 	}
-
-	switch parsed.Mode {
-	case "hot":
-		fmt.Printf("空调【模式：%s】【温度：%v℃】\n", pkg.SprintRed("制热"), pkg.SprintCyan(fmt.Sprintf("%v", parsed.Target)))
-	case "cold":
-		fmt.Printf("空调【模式：%s】【温度：%v℃】\n", pkg.SprintBlue("制冷"), pkg.SprintCyan(fmt.Sprintf("%v", parsed.Target)))
-	case "dry":
-		fmt.Printf("空调【模式：%s】\n", pkg.SprintGreen("除湿"))
-	}
-
-	return nil
 }
